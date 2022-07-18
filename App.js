@@ -1,27 +1,130 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
+import * as Location from "expo-location";
+import { useEffect, useState } from "react";
+import { StyleSheet, Text, View, ScrollView, Dimensions } from "react-native";
+const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function App() {
+  const [city, setCity] = useState("loading. . ");
+  const [days, setDays] = useState([]);
+  const [location, setLocation] = useState();
+  const [ok, setOk] = useState(true);
+
+  const API_KEY = "ca0a1ab3f12d28b20f38d1c2d0459f38";
+
+  const getWeather = async () => {
+    const { permission } = await Location.requestForegroundPermissionsAsync();
+    if (!permission) {
+      setOk(false);
+    }
+    const {
+      coords: { latitude, longitude },
+    } = await Location.getCurrentPositionAsync({ accuracy: 4 });
+    const location = await Location.reverseGeocodeAsync(
+      {
+        latitude,
+        longitude,
+      },
+      { useGoogleMaps: false }
+    );
+    setCity(location[0].city);
+    console.log(location);
+  };
+
+  useEffect(() => {
+    getWeather();
+  }, []);
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Hello!</Text>
       <StatusBar style="auto" />
+      <View style={styles.city}>
+        <Text style={styles.cityName}>{city}</Text>
+      </View>
+      <ScrollView
+        pagingEnabled
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.weather}
+      >
+        <View style={styles.day}>
+          <Text style={styles.tempText}>27℃</Text>
+          <Text style={styles.tempTextTwo}>Sunny</Text>
+        </View>
+        <View style={styles.day}>
+          <Text style={styles.tempText}>27℃</Text>
+          <Text style={styles.tempTextTwo}>Sunny</Text>
+        </View>
+        <View style={styles.day}>
+          <Text style={styles.tempText}>27℃</Text>
+          <Text style={styles.tempTextTwo}>Sunny</Text>
+        </View>
+        <View style={styles.day}>
+          <Text style={styles.tempText}>27℃</Text>
+          <Text style={styles.tempTextTwo}>Sunny</Text>
+        </View>
+        <View style={styles.day}>
+          <Text style={styles.tempText}>27℃</Text>
+          <Text style={styles.tempTextTwo}>Sunny</Text>
+        </View>
+        <View style={styles.day}>
+          <Text style={styles.tempText}>27℃</Text>
+          <Text style={styles.tempTextTwo}>Sunny</Text>
+        </View>
+        <View style={styles.day}>
+          <Text style={styles.tempText}>27℃</Text>
+          <Text style={styles.tempTextTwo}>Sunny</Text>
+        </View>
+        <View style={styles.day}>
+          <Text style={styles.tempText}>27℃</Text>
+          <Text style={styles.tempTextTwo}>Sunny</Text>
+        </View>
+      </ScrollView>
+      <View style={styles.boxthree}>
+        <Text></Text>
+      </View>
     </View>
   );
 }
 // this is an object of objects >> And the reason to use stylesheetcreate, it is just an object but gives us the auto complete.
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    // flexDirection: "row",
+    // the direction on mobile is column by default!
     backgroundColor: "rgb(100,220,255)",
-    alignItems: "center",
-    justifyContent: "center",
   },
-  text: {
-    fontSize: 40,
-    color: "darkslateblue",
+  city: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cityName: {
+    fontSize: 48,
+    fontWeight: "500",
+  },
+  weather: {
+    gap: 10,
+  },
+  day: {
+    width: SCREEN_WIDTH,
+    alignItems: "center",
+  },
+  tempText: {
+    marginTop: 40,
+    fontSize: 108,
+    fontWeight: "600",
+  },
+  tempTextTwo: {
+    fontSize: 36,
+    marginTop: -10,
+  },
+  boxthree: {
+    flex: 1,
+    backgroundColor: "palegreen",
   },
 });
+
 // instead of div, we use View. always need to import. all the text needs to go inside a Text
 // some styles are not available. example: border is not valid style property
 
