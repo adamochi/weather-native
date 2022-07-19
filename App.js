@@ -9,11 +9,25 @@ import {
   Dimensions,
   ActivityIndicator,
 } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
 
+const weatherIcons = {
+  Clouds: "weather-cloudy",
+  Rain: "weather-rainy",
+  Clear: "weather-sunny",
+  Snow: "weather-snowy",
+  Thunderstorm: "weather-lightning",
+  Drizzle: "weather-rainy",
+  Snow: "weather-snowy",
+  Atmosphere: "weather-sunset",
+};
+
 export default function App() {
-  const [city, setCity] = useState("loading. . ");
+  const [city, setCity] = useState();
   const [days, setDays] = useState([]);
+  const [current, setCurrent] = useState([]);
   const [ok, setOk] = useState(true);
 
   const API_KEY = "ca0a1ab3f12d28b20f38d1c2d0459f38";
@@ -41,12 +55,15 @@ export default function App() {
     );
     const json = await response.json();
     setDays(json.daily);
+    setCurrent(json.current);
+    console.log(json.current);
     console.log(json.daily);
   };
 
   useEffect(() => {
     getWeather();
   }, []);
+
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
@@ -61,24 +78,50 @@ export default function App() {
       >
         {days.length === 0 ? (
           <View style={styles.day}>
-            <ActivityIndicator color={"palevioletred"} size={100} />
+            <ActivityIndicator color={"palegreen"} size={100} />
           </View>
         ) : (
           days.map((day, index) => (
-            <View key={index} style={styles.day}>
-              <Text style={styles.tempNumber}>{Math.floor(day.temp.day)}℃</Text>
-              <View style={styles.minMax}>
-                <Text style={styles.min}>min: {Math.floor(day.temp.min)}℃</Text>
-                <Text style={styles.max}>max: {Math.floor(day.temp.max)}℃</Text>
+            <View key={index} style={styles.weatherContainer}>
+              <View style={styles.day}>
+                <View style={styles.tempAndIcon}>
+                  <Text style={styles.tempNumber}>
+                    {Math.floor(day.temp.day)}℃
+                  </Text>
+                  <MaterialCommunityIcons
+                    name={weatherIcons[day.weather[0].main]}
+                    size={54}
+                    color="black"
+                  />
+                </View>
+                <View style={styles.minMax}>
+                  <Text style={styles.min}>
+                    min: {Math.floor(day.temp.min)}℃
+                  </Text>
+                  <Text style={styles.max}>
+                    max: {Math.floor(day.temp.max)}℃
+                  </Text>
+                </View>
+                <Text style={styles.tempText}>{day.weather[0].main}</Text>
+                <Text style={styles.tempTextTwo}>
+                  {day.weather[0].description}
+                </Text>
               </View>
-              <Text style={styles.tempText}>{day.weather[0].main}</Text>
-              <Text style={styles.tempTextTwo}>
-                {day.weather[0].description}
-              </Text>
             </View>
           ))
         )}
       </ScrollView>
+      {days.length === 0 ? (
+        <View style={styles.boxthree}>
+          <Text style={styles.feels}>Getting the Weather</Text>
+        </View>
+      ) : (
+        <View style={styles.boxthree}>
+          <Text style={styles.feels}>
+            Currently feels like {Math.floor(current.feels_like)}℃
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -100,15 +143,19 @@ const styles = StyleSheet.create({
     fontSize: 48,
     fontWeight: "500",
   },
-  weather: {
-    gap: 10,
-  },
+  weatherContainer: {},
+  weather: {},
   day: {
     width: SCREEN_WIDTH,
     alignItems: "center",
   },
+  tempAndIcon: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   tempNumber: {
     marginTop: 40,
+    marginRight: 20,
     fontSize: 108,
     fontWeight: "600",
   },
@@ -133,7 +180,10 @@ const styles = StyleSheet.create({
   },
   boxthree: {
     flex: 1,
-    backgroundColor: "palegreen",
+    alignItems: "center",
+  },
+  feels: {
+    fontSize: 20,
   },
 });
 
