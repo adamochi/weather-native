@@ -1,13 +1,19 @@
 import { StatusBar } from "expo-status-bar";
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View, ScrollView, Dimensions } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  Dimensions,
+  ActivityIndicator,
+} from "react-native";
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function App() {
   const [city, setCity] = useState("loading. . ");
   const [days, setDays] = useState([]);
-  const [location, setLocation] = useState();
   const [ok, setOk] = useState(true);
 
   const API_KEY = "ca0a1ab3f12d28b20f38d1c2d0459f38";
@@ -20,6 +26,7 @@ export default function App() {
     const {
       coords: { latitude, longitude },
     } = await Location.getCurrentPositionAsync({ accuracy: 4 });
+    // reverseGeocode allows you to get the address of the lon,lat
     const location = await Location.reverseGeocodeAsync(
       {
         latitude,
@@ -28,7 +35,13 @@ export default function App() {
       { useGoogleMaps: false }
     );
     setCity(location[0].city);
-    console.log(location);
+    // console.log(location);
+    const response = await fetch(
+      `https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&exclude=alerts,minutely,hourly&units=metric&appid=${API_KEY}`
+    );
+    const json = await response.json();
+    setDays(json.daily);
+    console.log(json.daily);
   };
 
   useEffect(() => {
@@ -46,42 +59,26 @@ export default function App() {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.weather}
       >
-        <View style={styles.day}>
-          <Text style={styles.tempText}>27℃</Text>
-          <Text style={styles.tempTextTwo}>Sunny</Text>
-        </View>
-        <View style={styles.day}>
-          <Text style={styles.tempText}>27℃</Text>
-          <Text style={styles.tempTextTwo}>Sunny</Text>
-        </View>
-        <View style={styles.day}>
-          <Text style={styles.tempText}>27℃</Text>
-          <Text style={styles.tempTextTwo}>Sunny</Text>
-        </View>
-        <View style={styles.day}>
-          <Text style={styles.tempText}>27℃</Text>
-          <Text style={styles.tempTextTwo}>Sunny</Text>
-        </View>
-        <View style={styles.day}>
-          <Text style={styles.tempText}>27℃</Text>
-          <Text style={styles.tempTextTwo}>Sunny</Text>
-        </View>
-        <View style={styles.day}>
-          <Text style={styles.tempText}>27℃</Text>
-          <Text style={styles.tempTextTwo}>Sunny</Text>
-        </View>
-        <View style={styles.day}>
-          <Text style={styles.tempText}>27℃</Text>
-          <Text style={styles.tempTextTwo}>Sunny</Text>
-        </View>
-        <View style={styles.day}>
-          <Text style={styles.tempText}>27℃</Text>
-          <Text style={styles.tempTextTwo}>Sunny</Text>
-        </View>
+        {days.length === 0 ? (
+          <View style={styles.day}>
+            <ActivityIndicator color={"palevioletred"} size={100} />
+          </View>
+        ) : (
+          days.map((day, index) => (
+            <View key={index} style={styles.day}>
+              <Text style={styles.tempNumber}>{Math.floor(day.temp.day)}℃</Text>
+              <View style={styles.minMax}>
+                <Text style={styles.min}>min: {Math.floor(day.temp.min)}℃</Text>
+                <Text style={styles.max}>max: {Math.floor(day.temp.max)}℃</Text>
+              </View>
+              <Text style={styles.tempText}>{day.weather[0].main}</Text>
+              <Text style={styles.tempTextTwo}>
+                {day.weather[0].description}
+              </Text>
+            </View>
+          ))
+        )}
       </ScrollView>
-      <View style={styles.boxthree}>
-        <Text></Text>
-      </View>
     </View>
   );
 }
@@ -110,14 +107,29 @@ const styles = StyleSheet.create({
     width: SCREEN_WIDTH,
     alignItems: "center",
   },
-  tempText: {
+  tempNumber: {
     marginTop: 40,
     fontSize: 108,
     fontWeight: "600",
   },
-  tempTextTwo: {
-    fontSize: 36,
+  tempText: {
+    fontSize: 50,
     marginTop: -10,
+  },
+  tempTextTwo: {
+    fontSize: 20,
+  },
+  minMax: {
+    flexDirection: "row",
+    marginBottom: 10,
+    marginTop: -20,
+  },
+  min: {
+    marginRight: 20,
+    fontSize: 20,
+  },
+  max: {
+    fontSize: 20,
   },
   boxthree: {
     flex: 1,
